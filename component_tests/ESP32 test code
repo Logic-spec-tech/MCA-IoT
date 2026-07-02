@@ -1,0 +1,62 @@
+#include "WiFi.h"
+
+// Define the built-in LED pin (Most ESP32 Dev Kits use GPIO 2)
+const int LED_PIN = 2; 
+
+void setup() {
+  // Initialize Serial communication at 115200 baud rate
+  Serial.begin(115200);
+  delay(1000);
+  
+  Serial.println("\n====================================");
+  Serial.println("--- ESP32 BOARD DIAGNOSTIC TEST ---");
+  Serial.println("====================================\n");
+
+  // 1. TEST CPU & MEMORY PERIPHERALS
+  Serial.println("[1/4] Checking Chip Information...");
+  Serial.printf("Chip Revision: %d\n", ESP.getChipRevision());
+  Serial.printf("CPU Frequency: %d MHz\n", ESP.getCpuFreqMHz());
+  Serial.printf("Flash Chip Size: %d bytes\n", ESP.getFlashChipSize());
+  Serial.printf("Free Heap Memory: %d bytes\n", ESP.getFreeHeap());
+  Serial.println("-> Core CPU and Flash Memory are functional.\n");
+
+  // 2. TEST GPIO & BUILT-IN LED
+  Serial.println("[2/4] Initializing LED Pin (GPIO 2)...");
+  pinMode(LED_PIN, OUTPUT);
+  Serial.println("-> GPIO output initialized.\n");
+
+  // 3. TEST WI-FI MODULE
+  Serial.println("[3/4] Scanning Wi-Fi Networks...");
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+  
+  int n = WiFi.scanNetworks();
+  if (n == 0) {
+    Serial.println("-> Wi-Fi scan complete: No networks found (or weak antenna).");
+  } else {
+    Serial.printf("-> Wi-Fi operational! Found %d networks.\n\n", n);
+  }
+
+  Serial.println("[4/4] Starting continuous Loop tests (LED Blinking & Magnetic Sensor)...");
+  Serial.println("------------------------------------------------------------------------");
+}
+
+void loop() {
+  // Blink the built-in LED (Confirms GPIO and internal timer functionality)
+  digitalWrite(LED_PIN, HIGH);
+  Serial.print("LED Status: ON  | ");
+  
+  // Read the internal Hall Effect Sensor (Detects nearby magnetic fields)
+  // Note: Standard ESP32 chips support this; ESP32-S2/S3/C3 variants might read 0.
+  int magneticValue = hallRead(); 
+  Serial.printf("Internal Magnetic Sensor Value: %d\n", magneticValue);
+  delay(1000);
+
+  digitalWrite(LED_PIN, LOW);
+  Serial.print("LED Status: OFF | ");
+  magneticValue = hallRead();
+  Serial.printf("Internal Magnetic Sensor Value: %d\n", magneticValue);
+  delay(1000);
+}
+
